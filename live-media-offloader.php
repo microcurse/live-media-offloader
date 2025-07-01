@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name:       Live Media Offloader
- * Plugin URI:        https://example.com/
+ * Plugin URI:        https://github.com/microcurse/live-media-offloader
  * Description:       Reference the media library from the live environment.
  * Version:           1.0.0
- * Author:            Kilo Code
- * Author URI:        https://example.com/
+ * Author:            Marc Maninang
+ * Author URI:        https://github.com/microcurse/
  * License:           GPL v2 or later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       live-media-offloader
