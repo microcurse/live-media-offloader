@@ -48,7 +48,7 @@ The main logic in `live-media-offloader.php` is as follows:
 To make this work, you will need to add the following line to your local `wp-config.php` file. This file is located in the root of your WordPress installation.
 
 ```php
-define( 'LMO_LIVE_SITE_URL', 'https://www.palmspringslife.com' );
+define( 'LMO_LIVE_SITE_URL', 'https://www.yoursite.com' );
 ```
 
 This approach keeps the live URL out of the plugin code, making the plugin reusable and the configuration clean.
