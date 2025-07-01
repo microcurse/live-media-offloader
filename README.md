@@ -6,7 +6,7 @@
 *   **Plugin Slug:** `live-media-offloader`
 *   **Description:** A simple plugin to reference the media library from the live environment, avoiding the need to store media files locally.
 *   **Version:** 1.0.0
-*   **Author:** Kilo Code
+*   **Author:** Marc Maninang
 
 ## 2. Plugin Structure
 
