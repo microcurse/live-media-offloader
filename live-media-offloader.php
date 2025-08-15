@@ -22,13 +22,34 @@ if ( ! defined( 'WPINC' ) ) {
  * @return string The modified buffer.
  */
 function lmo_url_replace_callback( $buffer ) {
-	$local_url = get_site_url();
-	$live_url  = LMO_LIVE_SITE_URL;
+	$local_url = rtrim( get_site_url(), '/' );
+	$live_url  = rtrim( LMO_LIVE_SITE_URL, '/' );
 
 	$local_uploads_url = $local_url . '/wp-content/uploads';
 	$live_uploads_url  = $live_url . '/wp-content/uploads';
 
-	return str_replace( $local_uploads_url, $live_uploads_url, $buffer );
+	$pattern = '~' . preg_quote( $local_uploads_url, '~' ) . '(/[^"\'\s<\)]*)~i';
+
+	$buffer = preg_replace_callback(
+		$pattern,
+		function ( $matches ) use ( $live_uploads_url ) {
+			$relative_with_slash = $matches[1];
+			$path_only = $relative_with_slash;
+			$qpos = strpos( $path_only, '?' );
+			if ( $qpos !== false ) {
+				$path_only = substr( $path_only, 0, $qpos );
+			}
+			$decoded_path_only = rawurldecode( $path_only );
+			$local_file = WP_CONTENT_DIR . '/uploads' . $decoded_path_only;
+			if ( file_exists( $local_file ) ) {
+				return $matches[0];
+			}
+			return $live_uploads_url . $relative_with_slash;
+		},
+		$buffer
+	);
+
+	return $buffer;
 }
 
 /**
