@@ -3,7 +3,7 @@
  * Plugin Name:       Live Media Offloader
  * Plugin URI:        https://github.com/microcurse/live-media-offloader
  * Description:       Reference the media library from the live environment.
- * Version:           1.0.4
+ * Version:           1.0.5
  * Author:            Marc Maninang
  * Author URI:        https://github.com/microcurse/
  * License:           GPL v2 or later
@@ -22,17 +22,21 @@ if ( ! defined( 'WPINC' ) ) {
  * @return string The modified buffer.
  */
 function lmo_url_replace_callback( $buffer ) {
-	$local_url = rtrim( get_site_url(), '/' );
-	$live_url  = rtrim( LMO_LIVE_SITE_URL, '/' );
+	$uploads = wp_get_upload_dir();
+	$local_baseurl = rtrim( $uploads['baseurl'], '/' );
+	$local_basedir = rtrim( $uploads['basedir'], '/' );
+	$local_base_path = parse_url( $local_baseurl, PHP_URL_PATH );
+	if ( empty( $local_base_path ) ) {
+		$local_base_path = '/wp-content/uploads';
+	}
 
-	$local_uploads_url = $local_url . '/wp-content/uploads';
-	$live_uploads_url  = $live_url . '/wp-content/uploads';
+	$live_baseurl = rtrim( LMO_LIVE_SITE_URL, '/' ) . $local_base_path;
 
-	$pattern = '~' . preg_quote( $local_uploads_url, '~' ) . '(/[^"\'\s<\)]*)~i';
+	$pattern = '~' . preg_quote( $local_baseurl, '~' ) . '(/[^"\'\s<\)]*)~i';
 
 	$buffer = preg_replace_callback(
 		$pattern,
-		function ( $matches ) use ( $live_uploads_url ) {
+		function ( $matches ) use ( $local_basedir, $live_baseurl ) {
 			$relative_with_slash = $matches[1];
 			$path_only = $relative_with_slash;
 			$qpos = strpos( $path_only, '?' );
@@ -40,11 +44,11 @@ function lmo_url_replace_callback( $buffer ) {
 				$path_only = substr( $path_only, 0, $qpos );
 			}
 			$decoded_path_only = rawurldecode( $path_only );
-			$local_file = WP_CONTENT_DIR . '/uploads' . $decoded_path_only;
+			$local_file = $local_basedir . $decoded_path_only;
 			if ( file_exists( $local_file ) ) {
 				return $matches[0];
 			}
-			return $live_uploads_url . $relative_with_slash;
+			return $live_baseurl . $relative_with_slash;
 		},
 		$buffer
 	);
@@ -58,14 +62,14 @@ function lmo_url_replace_callback( $buffer ) {
 function lmo_start_buffering() {
 	// Ensure the constant is defined and we are not on the live site.
 	if ( defined( 'LMO_LIVE_SITE_URL' ) && LMO_LIVE_SITE_URL ) {
-		$local_url = get_site_url();
-		$live_url  = LMO_LIVE_SITE_URL;
-		if ( $local_url !== $live_url ) {
+		$local_url = rtrim( get_site_url(), '/' );
+		$live_url  = rtrim( LMO_LIVE_SITE_URL, '/' );
+		if ( strcasecmp( $local_url, $live_url ) !== 0 ) {
 			ob_start( 'lmo_url_replace_callback' );
 		}
 	}
 }
-add_action( 'init', 'lmo_start_buffering' );
+add_action( 'template_redirect', 'lmo_start_buffering' );
 
 /**
  * Flushes the output buffer on shutdown.
